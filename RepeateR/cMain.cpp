@@ -1,6 +1,7 @@
 #include "cMain.h"
 #include <conio.h>
 #include <Windows.h>
+#include <iostream>
 
 wxBEGIN_EVENT_TABLE(cMain, wxFrame)
 
@@ -14,6 +15,7 @@ wxEND_EVENT_TABLE()
 cMain::cMain() : wxFrame(nullptr, wxID_ANY, "RepeateR", wxPoint(30, 30), wxSize(800, 600))
 {
 	//		Definitions
+	kbd = SetWindowsHookEx(WH_KEYBOARD_LL, cMain::KBDHook, 0, 0);
 
 	macroCreator1 = new wxButton(this, 1, "Button 1", wxPoint(10, 10), wxSize(100, 20));
 	plus1 = new wxStaticText(this, wxID_ANY, "+", wxPoint(120, 10), wxSize(10, 20), 0, "");
@@ -81,6 +83,9 @@ void cMain::ListenForKeyInput1(wxCommandEvent& evt)
 void cMain::ListenForKeyInput2(wxCommandEvent& evt)
 {
 	keyInput = true;
+	if (GetMessage(&message, NULL, NULL, NULL) > 0)
+		keyInput = true;
+
 	while (keyInput)
 	{
 		if (GetAsyncKeyState(VK_LCONTROL))
@@ -94,9 +99,14 @@ void cMain::ListenForKeyInput2(wxCommandEvent& evt)
 			keyInput = false;
 			wxMessageBox("Escape pressed on 2");
 		}
+
+		TranslateMessage(&message);
+		DispatchMessage(&message);
+
 		Sleep(10);
 	}
 
+	UnhookWindowsHookEx(kbd);
 	evt.Skip();
 }
 
@@ -120,4 +130,24 @@ void cMain::ListenForKeyInput3(wxCommandEvent& evt)
 	}
 
 	evt.Skip();
+}
+
+void cMain::testFunc(char c)
+{
+	macroCreator1->SetLabel(c);
+}
+
+LRESULT CALLBACK cMain::KBDHook(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	KBDLLHOOKSTRUCT* s = reinterpret_cast<KBDLLHOOKSTRUCT*>(lParam);
+
+	switch (wParam)
+	{
+	case WM_KEYDOWN:
+		char c = MapVirtualKey(s->vkCode, MAPVK_VK_TO_CHAR);
+		//&macroCreator1->SetLabel(c);
+		break;
+	}
+
+	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }

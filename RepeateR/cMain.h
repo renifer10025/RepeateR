@@ -34,5 +34,10 @@ public:
 
 	void RemovePlaceholder();
 
+	static LRESULT CALLBACK KBDHook(int nCode, WPARAM wParam, LPARAM lParam);		//			Do something with this, bcs it's static and I don't want it to be static ;P
+	HHOOK kbd;
+	MSG message;
+	void testFunc(char c);
+
 	wxDECLARE_EVENT_TABLE();
 };
